@@ -21,14 +21,14 @@ function dVdt = string_rate_func01(t,V,string_params)
     c = string_params.c; %damping coefficient
     dx = string_params.dx; %horizontal spacing between masses
     %unpack state variable
-    U = V(1:n);
-    dUdt = V((n+1):(2*n));
+    U = V(:, 1);
+    dUdt = V(:, 2);
     Uf = Uf_func(t);
     dUfdt = dUfdt_func(t);
 
     %compute acceleration
     %% for loop way
-    % d2Udt2 = zeros(1, n);
+    % d2Udt2 = zeros(n, 1);
     % for i = 1:n
     %     if i == 1
     %         U_im1 = [0; 0];
@@ -52,8 +52,11 @@ function dVdt = string_rate_func01(t,V,string_params)
     B2 = zeros(n, 1);
     B2(end) = dUfdt;
 
-    d2Udt2 = ((n / M) * ((Tf / dx) * (sum(Q .* U, 2) + B1) + (c / dx) * (sum(Q .* dUdt, 2) + B2)))';
+    a1 = (Tf / dx) * (Q * U + B1);
+    a2 = (c / dx) * (Q * dUdt + B2);
+
+    d2Udt2 = (n / M) * (a1 + a2);
 
     %assemble state derivative
-    dVdt = [dUdt;d2Udt2];
+    dVdt = [dUdt,d2Udt2];
 end

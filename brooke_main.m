@@ -1,7 +1,11 @@
 string_params = struct();
 
 t = 4;
-V = [3, 1, -5; -2, 0, 2];
+V = [
+    .03, -.02
+    .01, 0
+    -.05, .02
+    ];
 string_params.n = 3;
 string_params.M = 2;
 string_params.Uf_func = @(t)3*t;
