@@ -45,16 +45,14 @@ function dVdt = string_rate_func01(t,V,string_params)
 
     %% laplacian way
     %construct the nxn discrete laplacian matrix
-    laplacian = circshift(eye(n),-1,2) + -2*eye(n) + circshift(eye(n),1,2);
-    laplacian(1,end) = laplacian(1,end)-1; %delete unwanted 1 in top right corner
-    laplacian(end,1) = laplacian(end,1)-1; %delete unwanted 1 in bottom right corner
+    Q = my_laplacian(n);
 
     B1 = zeros(n, 1);
     B1(end) = Uf;
     B2 = zeros(n, 1);
     B2(end) = dUfdt;
 
-    d2Udt2 = ((n / M) * ((Tf / dx) * (sum(laplacian .* U, 2) + B1) + (c / dx) * (sum(laplacian .* dUdt, 2) + B2)))';
+    d2Udt2 = ((n / M) * ((Tf / dx) * (sum(Q .* U, 2) + B1) + (c / dx) * (sum(Q .* dUdt, 2) + B2)))';
 
     %assemble state derivative
     dVdt = [dUdt;d2Udt2];
