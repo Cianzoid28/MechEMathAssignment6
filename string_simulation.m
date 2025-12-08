@@ -1,47 +1,47 @@
-function string_simulation_template01()
+function string_simulation(string_params)
     close all;
-    num_masses = 200;
-    total_mass = 1;
-    tension_force = 15;   % N
-    string_length = 10;  % m
-    damping_coeff = string_length / tension_force;
-
-    dx = string_length / (num_masses + 1);
-
-    amplitude_Uf = 0.01;
-    omega_Uf = 10;
-
-    % boundary forcing at right end
-    Uf_func    = @(t) amplitude_Uf * cos(omega_Uf * t);
-    dUfdt_func = @(t) -omega_Uf * amplitude_Uf * sin(omega_Uf * t);
-
-    % pack params
-    string_params = struct();
-    string_params.n = num_masses;
-    string_params.M = total_mass;
-    string_params.Uf_func = Uf_func;
-    string_params.dUfdt_func = dUfdt_func;
-    string_params.Tf = tension_force;
-    string_params.L = string_length;
-    string_params.c = damping_coeff;
-    string_params.dx = dx;
+    % num_masses = 4;
+    % total_mass = 1;
+    % tension_force = 15;   % N
+    % string_length = 10;  % m
+    % damping_coeff = string_length / tension_force;
+    % 
+    % dx = string_length / (num_masses + 1);
+    % 
+    % amplitude_Uf = 0.01;
+    % omega_Uf = nat_freq;
+    % 
+    % % boundary forcing at right end
+    % Uf_func    = @(t) amplitude_Uf * cos(omega_Uf * t);
+    % dUfdt_func = @(t) -omega_Uf * amplitude_Uf * sin(omega_Uf * t);
+    % 
+    % % pack params
+    % string_params = struct();
+    % string_params.n = num_masses;
+    % string_params.M = total_mass;
+    % string_params.Uf_func = Uf_func;
+    % string_params.dUfdt_func = dUfdt_func;
+    % string_params.Tf = tension_force;
+    % string_params.L = string_length;
+    % string_params.c = damping_coeff;
+    % string_params.dx = dx;
 
     my_rate_func = @(t, V) string_rate_func01(t, V, string_params);
 
     % initial conditions
     %U0     = [-0.01; 0.01; -0.01; 0.01];
     %dUdt0  = [-0.01; 0.01; -0.01; 0.01];
-    U0     = zeros([200, 1]);
-    dUdt0     = zeros([200, 1]);
+    U0     = zeros([string_params.n, 1]);
+    dUdt0     = zeros([string_params.n, 1]);
     V0 = [U0; dUdt0];  % 8×1 vector
 
-    tspan = [0 18];
+    tspan = [0 24];
 
     % run simulation
     [tlist, Vlist] = ode45(my_rate_func, tspan, V0);
 
     % extract displacements
-    Ulist = Vlist(:, 1:num_masses)
+    Ulist = Vlist(:, 1:string_params.n);
 
     % plot
     figure;
@@ -53,7 +53,7 @@ function string_simulation_template01()
 
 
     %anime
-    x = linspace(0, string_params.L, num_masses+2);
+    x = linspace(0, string_params.L, string_params.n+2);
     
     % initial Y-values
     U_full = [0, Ulist(1,:), string_params.Uf_func(0)];
@@ -83,7 +83,7 @@ function string_simulation_template01()
         hPtsBlue.YData = [U_full(1), U_full(end)];
     
         title(sprintf('t = %.3f s', tlist(k)));
-        %pause(0.005);
+        pause(0.005);
         drawnow;
     end
 
