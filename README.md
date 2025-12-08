@@ -1,1 +1,0 @@
-# MechEMathAssignment6
