@@ -26,27 +26,9 @@ function dVdt = string_rate_func01(t,V,string_params)
     Uf = Uf_func(t);
     dUfdt = dUfdt_func(t);
 
-    %compute acceleration
-    %% for loop way
-    % d2Udt2 = zeros(n, 1);
-    % for i = 1:n
-    %     if i == 1
-    %         U_im1 = [0; 0];
-    %     else
-    %         U_im1 = [U(i-1); dUdt(i-1)];
-    %     end
-    %     if i == n
-    %         U_ip1 = [Uf; dUfdt];
-    %     else
-    %         U_ip1 = [U(i+1); dUdt(i+1)];
-    %     end
-    %     d2Udt2(i) = (n / M) * ((Tf / dx) * (U_im1(1) - 2*U(i) + U_ip1(1)) + (c / dx) * (U_im1(2) - 2*dUdt(i) + U_ip1(2)));
-    % end
-
-    %% laplacian way
     %construct the nxn discrete laplacian matrix
     Q = my_laplacian(n);
-
+    %compute acceleration
     B1 = zeros(n, 1);
     B1(end) = Uf;
     B2 = zeros(n, 1);
