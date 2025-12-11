@@ -35,7 +35,7 @@ function nat_freq_string_simulation(string_params)
     dUdt0     = zeros([string_params.n, 1]);
     V0 = [U0; dUdt0];  % 8×1 vector
 
-    tspan = [0 24];
+    tspan = [0 128];
 
     % run simulation
     [tlist, Vlist] = ode45(my_rate_func, tspan, V0);
@@ -58,33 +58,38 @@ function nat_freq_string_simulation(string_params)
     % initial Y-values
     U_full = [0, Ulist(1,:), string_params.Uf_func(0)];
     
+    % figure
+    % hold on;
+    % 
+    % hLine = plot(x, U_full, 'k:', 'LineWidth', 1.5);
+    % 
+    % hPtsRed = plot(x(2:end-1), Ulist(1,:), 'ro', 'MarkerSize', 6, 'MarkerFaceColor', 'r');
+    % 
+    % hPtsBlue = plot([x(1), x(end)], [U_full(1), U_full(end)], 'bo', 'MarkerSize', 6, 'MarkerFaceColor', 'b');
+    % 
+    % xlim([-0.25 string_params.L+0.25])
+    % ylim([-0.15 0.15])
+    % 
+    % for k = 1:length(tlist)
+    %     % update full string with boundary points
+    %     U_full = [0, Ulist(k,:), string_params.Uf_func(tlist(k))];
+    % 
+    %     hLine.YData = U_full;
+    % 
+    %     % update interior points
+    %     hPtsRed.YData  = Ulist(k,:);
+    % 
+    %     % update boundary points
+    %     hPtsBlue.YData = [U_full(1), U_full(end)];
+    % 
+    %     title(sprintf('t = %.3f s', tlist(k)));
+    %     pause(0.01);
+    %     drawnow;
+    % end
+
     figure
-    hold on;
-    
-    hLine = plot(x, U_full, 'k:', 'LineWidth', 1.5);
-    
-    hPtsRed = plot(x(2:end-1), Ulist(1,:), 'ro', 'MarkerSize', 6, 'MarkerFaceColor', 'r');
-    
-    hPtsBlue = plot([x(1), x(end)], [U_full(1), U_full(end)], 'bo', 'MarkerSize', 6, 'MarkerFaceColor', 'b');
-    
-    xlim([-0.25 string_params.L+0.25])
-    ylim([-0.02 0.02])
-    
-    for k = 1:length(tlist)
-        % update full string with boundary points
-        U_full = [0, Ulist(k,:), string_params.Uf_func(tlist(k))];
-        
-        hLine.YData = U_full;
-        
-        % update interior points
-        hPtsRed.YData  = Ulist(k,:);
-        
-        % update boundary points
-        hPtsBlue.YData = [U_full(1), U_full(end)];
-    
-        title(sprintf('t = %.3f s', tlist(k)));
-        pause(0.005);
-        drawnow;
-    end
+    x
+    string_params.Ur(:, 1)
+    plot(x, string_params.Ur(:, 1))
 
 end
