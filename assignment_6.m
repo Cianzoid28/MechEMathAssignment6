@@ -1,7 +1,9 @@
 function assignment_6()
+    close all;
     %experiment_1();
     %experiment_2();
-    experiment_3();
+    %experiment_3();
+    experiment_4();
 end
 
 function experiment_1()
@@ -14,7 +16,7 @@ function experiment_1()
     string_params.Tf = 2; %tension in string
     string_params.L = 7; %length of string
     string_params.c = .0001; %damping coefficient
-    string_params.dx = (string_params.L/string_params.n+1); %horizontal spacing between masses
+    string_params.dx = string_params.L/(string_params.n+1); %horizontal spacing between masses
 
     [M_mat,K_mat] = construct_2nd_order_matrices(string_params);
     %Use MATLAB to solve the generalized eigenvalue problem
@@ -34,7 +36,7 @@ function experiment_1()
     U0 = zeros(string_params.n,1);
     dUdt0 = zeros(string_params.n,1);
 
-    V0 = [U0,dUdt0];
+    V0 = [U0;dUdt0];
 
     tlist = linspace(0,20*(2*pi)/omega, 10000+1);
 
@@ -89,19 +91,19 @@ function experiment_2()
 end
 
 function experiment_3()
+    
 
-    n=200;
-    mode_index = 4;
+      n=200;
+    mode_index = 10;
 
     string_params.n = n; %number of masses
     string_params.M = 10; %total mass attached to the string
     string_params.Tf = 2; %tension in string
     string_params.L = 7; %length of string
     string_params.c = .0001; %damping coefficient
-    string_params.dx = (string_params.L/string_params.n+1); %horizontal spacing between masses
+    string_params.dx = string_params.L/(string_params.n+1); %horizontal spacing between masses
 
     rho = string_params.M/string_params.L;
-
     c = sqrt(string_params.Tf/rho);
     
     %[M_mat,K_mat] = construct_2nd_order_matrices(string_params);
@@ -131,9 +133,9 @@ function experiment_3()
     U0 = zeros(string_params.n,1);
     dUdt0 = zeros(string_params.n,1);
 
-    V0 = [U0,dUdt0];
+    V0 = [U0;dUdt0];
 
-    tlist = linspace(0,20*(2*pi)/omega, 10000+1);
+    tlist = linspace(0,20*(2*pi)/omega, 5000+1);
 
     my_rate_func = @(t_in,V_in) string_rate_func02(t_in,V_in,string_params);
     
@@ -142,6 +144,8 @@ function experiment_3()
     animate_string_with_mode_shape(tlist,Vresult,string_params,mode_shape_WE);
 
 end
+
+
 
 %b-spline pulse function
 %INPUTS:
@@ -222,7 +226,7 @@ function animate_string_travelling_wave(tlist,Vresult,string_params,x_centroid0,
 
     string_plot = plot(0,0,'o-', 'Color','k', 'markerfacecolor','r','markersize',4);
 
-    centroid_plot = plot(0,0,'b',LineStyle=':');
+    centroid_plot = plot(0,0,'k',LineStyle=':');
 
     xlabel('x');
     ylabel('U(t,x)');
@@ -256,7 +260,7 @@ function animate_string_travelling_wave(tlist,Vresult,string_params,x_centroid0,
 
 end
 
-function animate_string_with_mode_shape(tlist,Vresult,string_params,mode_shape_LA)
+function animate_string_with_mode_shape(tlist,Vresult,string_params,mode_shape)
     n = string_params.n;
     L = string_params.L;
 
@@ -269,11 +273,11 @@ function animate_string_with_mode_shape(tlist,Vresult,string_params,mode_shape_L
     axis([0,L,-1.1*h,1.1*h]);
     hold on
 
-    string_plot = plot(0,0,'o-', 'Color','k','linewidt', 2, 'markerfacecolor','r','markersize',4);
+    string_plot = plot(0,0,'o-', 'Color','k','linewidth', 2, 'markerfacecolor','r','markersize',4);
 
-    mode_shape_plot = plot(0,0,'o-', 'Color','b','linewidt', 2, 'markerfacecolor','k','markersize',4);
+    mode_shape_plot = plot(0,0,'o-', 'Color','b','linewidth', 2, 'markerfacecolor','k','markersize',4);
 
-    mode_shape_padded = [0;mode_shape_LA;0];
+    mode_shape_padded = [0;mode_shape;0];
 
     scale_factor = max(abs(maxU),abs(minU))/max(abs(mode_shape_padded));
     mode_shape_padded = mode_shape_padded*scale_factor;
