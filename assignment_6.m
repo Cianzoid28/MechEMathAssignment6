@@ -1,6 +1,7 @@
 function assignment_6()
     %experiment_1();
-    experiment_2();
+    %experiment_2();
+    experiment_3();
 end
 
 function experiment_1()
@@ -54,38 +55,130 @@ function experiment_2()
     string_params.Tf = 2; %tension in string
     string_params.L = 7; %length of string
     string_params.c = .0001; %damping coefficient
-    string_params.dx = (string_params.L/string_params.n+1); %horizontal spacing between masses
+    string_params.dx = string_params.L/(n+1); %horizontal spacing between masses
 
 
     string_params.Uf_func = @(t_in) 0; %function describing motion of end point
-    string_params.dUfdt_func = @(t_in)0; %time derivative of Uf
+    string_params.dUfdt_func = @(t_in) 0; %time derivative of Uf
     string_params.Uf_amplitude = 0;
 
     rho = string_params.M/string_params.L;
 
     c = sqrt(string_params.Tf/rho);
 
-    x_list = linspace(0,string_params.L,n+2);
+    x_list = linspace(0,string_params.L,n+2)';
     x_list = x_list(2:end-1);
 
-    w_pulse = string_params.L/20;
+    w_pulse = string_params.L/5;
     h_pulse = 7;
 
+    x_shift = 0;
+    U0 = b_spline_pulse(x_list-x_shift,w_pulse,h_pulse);
+    dUdt0 = -c*b_spline_pulse_derivative(x_list-x_shift,w_pulse,h_pulse);
 
-    U0 = triangle_pulse(x_list,w_pulse,h_pulse);
-    dUdt0 = -c*triangle_pulse_derivative(x_list,w_pulse,h_pulse);
+    V0 = [U0;dUdt0];
 
-    V0 = [U0,dUdt0];
-
-    tlist = linspace(0,3*string_params.L/c, 10000+1);
+    tlist = linspace(0,6*string_params.L/c,10000+1);
 
     my_rate_func = @(t_in,V_in) string_rate_func02(t_in,V_in,string_params);
     
     [tlist, Vresult] = ode45(my_rate_func,tlist,V0);
 
-    animate_string_travelling_wave(tlist,Vresult,string_params);
+    animate_string_travelling_wave(tlist,Vresult,string_params,x_shift+w_pulse/2, c);
 
 end
+
+function experiment_3()
+
+    n=200;
+    mode_index = 4;
+
+    string_params.n = n; %number of masses
+    string_params.M = 10; %total mass attached to the string
+    string_params.Tf = 2; %tension in string
+    string_params.L = 7; %length of string
+    string_params.c = .0001; %damping coefficient
+    string_params.dx = (string_params.L/string_params.n+1); %horizontal spacing between masses
+
+    rho = string_params.M/string_params.L;
+
+    c = sqrt(string_params.Tf/rho);
+    
+    %[M_mat,K_mat] = construct_2nd_order_matrices(string_params);
+    
+    % %Use MATLAB to solve the generalized eigenvalue problem
+    % [Ur_mat,lambda_mat] = eig(K_mat,M_mat);
+    % 
+    % mode_shape_LA = Ur_mat(:,mode_index);
+
+    %omega_n = sqrt(-lambda_mat(mode_index,mode_index));
+
+    omega_n_spatial = pi*mode_index/string_params.L;
+    omega_n = c*omega_n_spatial;
+
+    x_list = linspace(0,string_params.L,n+2)';
+    x_list = x_list(2:end-1);
+
+    mode_shape_WE = sin(omega_n_spatial*x_list);
+
+    omega = omega_n; %rads/sec
+    A = 3;
+
+    string_params.Uf_func = @(t_in) A*sin(omega*t_in); %function describing motion of end point
+    string_params.dUfdt_func = @(t_in) -omega*A*cos(omega*t_in); %time derivative of Uf
+    string_params.Uf_amplitude = A;
+
+    U0 = zeros(string_params.n,1);
+    dUdt0 = zeros(string_params.n,1);
+
+    V0 = [U0,dUdt0];
+
+    tlist = linspace(0,20*(2*pi)/omega, 10000+1);
+
+    my_rate_func = @(t_in,V_in) string_rate_func02(t_in,V_in,string_params);
+    
+    [tlist, Vresult] = ode45(my_rate_func,tlist,V0);
+
+    animate_string_with_mode_shape(tlist,Vresult,string_params,mode_shape_WE);
+
+end
+
+%b-spline pulse function
+%INPUTS:
+%t: current time
+%w: width of pulse (starts at t=0, ends at t=h)
+%h: height of pulse
+%OUTPUTS:
+%res: pulse evaluated at t
+function res = b_spline_pulse(t,w,h)
+    t = 4*t/w;
+    b3 = (0<=t).*(t<1).*(t.^3)/4;
+    t = t-1;
+    b2 = (0<=t).*(t<1).*(-3*t.^3+3*t.^2+3*t+1)/4;
+    t = t-1;
+    b1 = (0<=t).*(t<1).*(3*t.^3-6*t.^2+4)/4;
+    t = t-1;
+    b0 = (0<=t).*(t<1).*(-t.^3+3*t.^2-3*t+1)/4;
+    res = h*(b0+b1+b2+b3);
+end
+%b-spline pulse function (derivative)
+%INPUTS:
+%t: current time
+%w: width of pulse (starts at t=0, ends at t=h)
+%h: height of pulse
+%OUTPUTS:
+%res: derivative of pulse evaluated at t
+function res = b_spline_pulse_derivative(t,w,h)
+    t = 4*t/w;
+    b3 = (0<=t).*(t<1).*(3*t.^2)/4;
+    t = t-1;
+    b2 = (0<=t).*(t<1).*(-9*t.^2+6*t+3)/4;
+    t = t-1;
+    b1 = (0<=t).*(t<1).*(9*t.^2-12*t)/4;
+    t = t-1;
+    b0 = (0<=t).*(t<1).*(-3*t.^2+6*t-3)/4;
+    res = (4*h/w)*(b0+b1+b2+b3);
+    end
 
 %triangle pulse function
 %INPUTS:
@@ -114,7 +207,7 @@ function res = triangle_pulse_derivative(t,w,h)
 end
 
 
-function animate_string_travelling_wave(tlist,Vresult,string_params)
+function animate_string_travelling_wave(tlist,Vresult,string_params,x_centroid0, c)
     n = string_params.n;
     L = string_params.L;
 
@@ -127,19 +220,32 @@ function animate_string_travelling_wave(tlist,Vresult,string_params)
     axis([0,L,-1.1*h,1.1*h]);
     hold on
 
-    string_plot = plot(0,0,'o-', 'Color','k','linewidt', 2, 'markerfacecolor','r','markersize',4);
+    string_plot = plot(0,0,'o-', 'Color','k', 'markerfacecolor','r','markersize',4);
 
- 
+    centroid_plot = plot(0,0,'b',LineStyle=':');
+
     xlabel('x');
     ylabel('U(t,x)');
     title('Plot of vibrating string');
 
     for k = 1:length(tlist)
+
         t = tlist(k);
         U = Vresult(k,1:n);
         Uf = string_params.Uf_func(t);
 
         U_padded = [0,U,Uf];
+
+        %short blurb showing how to find x-coord of tracking line
+        %x = x-coord of tracking line, t = current time
+        %c = wave speed, w = pulse width (in time), L = string length
+        x_centroid = c*t+x_centroid0;
+        x_centroid = mod(x_centroid,2*L);
+        if x_centroid > L
+            x_centroid = 2*L - x_centroid;
+        end
+
+        set(centroid_plot,'xdata',[x_centroid,x_centroid],'ydata',[-1.1*h,1.1*h])
         
 
         set(string_plot,'xdata', x_list, 'ydata', U_padded);
