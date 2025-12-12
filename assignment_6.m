@@ -105,16 +105,7 @@ function experiment_3()
 
     rho = string_params.M/string_params.L;
     c = sqrt(string_params.Tf/rho);
-    
-    %[M_mat,K_mat] = construct_2nd_order_matrices(string_params);
-    
-    % %Use MATLAB to solve the generalized eigenvalue problem
-    % [Ur_mat,lambda_mat] = eig(K_mat,M_mat);
-    % 
-    % mode_shape_LA = Ur_mat(:,mode_index);
-
-    %omega_n = sqrt(-lambda_mat(mode_index,mode_index));
-
+   
     omega_n_spatial = pi*mode_index/string_params.L;
     omega_n = c*omega_n_spatial;
 
@@ -145,7 +136,52 @@ function experiment_3()
 
 end
 
+function experiment_4()
+    
+    mode_index = 3;
 
+    string_params.M = 10; %total mass attached to the string
+    string_params.Tf = 2; %tension in string
+    string_params.L = 7; %length of string
+    string_params.c = .0001; %damping coefficient
+
+    rho = string_params.M/string_params.L;
+    c = sqrt(string_params.Tf/rho);
+
+    omega_n_spatial = pi*mode_index/string_params.L;
+    omega_n = c*omega_n_spatial;
+
+    x_list_continuous = linspace(0,string_params.L,1000);
+    mode_shape_WE = sin(omega_n_spatial*x_list_continuous);
+
+
+    n_list = [5,10,30,50];
+
+    for k = 1:length(n_list)
+        n = n_list(k);
+
+        string_params.n = n; %number of masses
+        string_params.dx = string_params.L/(string_params.n+1); %horizontal spacing between masses
+    
+        [M_mat,K_mat] = construct_2nd_order_matrices(string_params);
+        
+        %Use MATLAB to solve the generalized eigenvalue problem
+        [Ur_mat,lambda_mat] = eig(K_mat,M_mat);
+    
+        mode_shape_LA = [0;Ur_mat(:,n+1-mode_index);0];
+        mode_shape_LA = mode_shape_LA/max(abs(mode_shape_LA));
+    
+        omega_n = sqrt(-lambda_mat(n+1-mode_index,n+1-mode_index));
+    
+        x_list = linspace(0,string_params.L,n+2)';
+    
+        subplot(length(n_list),1,k);
+        hold on
+        plot(x_list_continuous, mode_shape_WE,'b');
+        plot(x_list,mode_shape_LA,'o-', 'Color','k', 'markerfacecolor','r','markersize',4);
+    end
+
+end
 
 %b-spline pulse function
 %INPUTS:
